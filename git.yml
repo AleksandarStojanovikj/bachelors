@@ -1,0 +1,12 @@
+---
+- name: Install packages
+  hosts: VM
+  become: yes
+
+  tasks:
+    - name: install git
+      pacman:
+        name: git
+        state: present
+
+

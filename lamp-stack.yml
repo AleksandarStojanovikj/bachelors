@@ -1,0 +1,94 @@
+---
+- name: LAMP stack 
+  hosts: VM
+  become: yes
+
+  tasks:
+    - name: Full system upgrade
+      tags: ["system"]
+      pacman:
+        update_cache: yes
+        upgrade: yes
+
+    - name: Install apache
+      tags: ["apache"]
+      pacman:
+        state: present
+        name: 
+          - apache
+
+    - name: Create document root
+      file:
+        path: "/srv/http/domain1"
+        state: directory
+        owner: test
+        mode: '0755'
+
+    - name: Copy index test page
+      template:
+        src: "~/Documents/Bachelors/index.html.j2"
+        dest: "/srv/http/domain1/index.html"
+
+    - name: Create document root
+      file:
+        path: "/srv/http/domain2"
+        state: directory
+        owner: test
+        mode: '0755'
+
+    - name: Copy index test page
+      template:
+        src: "~/Documents/Bachelors/index2.html.j2"
+        dest: "/srv/http/domain2/index.html"
+
+    - name: Create vhosts root
+      file:
+        path: "/etc/httpd/conf/vhosts"
+        state: directory
+        owner: test
+        mode: '0755'
+
+    - name: Set up Apache virtualHost
+      template: 
+        src: "~/Documents/Bachelors/domain1.dom.j2"
+        dest: "/etc/httpd/conf/vhosts/domain1.dom"
+
+    - name: Set up Apache virtualHost
+      template: 
+        src: "~/Documents/Bachelors/domain2.dom.j2"
+        dest: "/etc/httpd/conf/vhosts/domain2.dom"
+   
+    # if you want to use 1 file for multiple vhosts.
+    # if you have multiple vhosts, it's better to use different files (conf/vhosts/domain1.dom...)
+    # because it's easier to manage and toggle between them
+    #- name: Enable vhosts in config
+    #  lineinfile:
+    #    path: /etc/httpd/conf/httpd.conf
+    #    regexp: '^#Include conf/extra/httpd-vhosts.conf'
+    #    line: Include conf/extra/httpd-vhosts.conf
+ 
+    - name: Enable vhost1
+      lineinfile:
+        path: /etc/httpd/conf/httpd.conf
+        line: Include conf/vhosts/domain1.dom
+
+    - name: Enable vhost2
+      lineinfile:
+        path: /etc/httpd/conf/httpd.conf
+        line: Include conf/vhosts/domain2.dom
+
+    - name: Ensure httpd is running
+      service:
+        name: httpd
+        state: started
+
+    - name: Enable new site
+      service:
+        name: httpd
+        state: reloaded
+
+
+#      - php
+#      - php-apache
+# TODO: mysql/mariadb?
+# TODO: start services. configure mariadb/mysql

@@ -1,0 +1,23 @@
+---
+- name: NGINX stack
+  hosts: VM-nginx
+  become: yes
+
+  tasks:
+    - name: Full system upgrade
+      tags: ["system"]
+      pacman:
+        update_cache: yes
+        upgrade: yes
+
+    - name: Install nginx
+      tags: ["nginx"]
+      pacman:
+        state: present
+        name: 
+          - nginx
+
+    - name: Ensure nginx is running
+      service:
+        name: nginx
+        state: started

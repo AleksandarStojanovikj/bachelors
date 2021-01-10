@@ -1,0 +1,9 @@
+all:
+  hosts:
+    VM:
+      ansible_host: 192.168.100.11
+      ansible_user: test
+    VM-nginx:
+      ansible_host: 192.168.100.14
+      ansible_user: test
+  
