@@ -1,0 +1,25 @@
+---
+- name: mariadb configuration
+  hosts: VM
+  become: yes
+
+  tasks:
+    - name: Install mariadb
+      tags: ["mariadb"]
+      pacman:
+        state: present
+        name:
+          - mariadb
+
+    - name: Count files in /var/lib/mysql
+      find: path=/var/lib/mysql patterns="*"
+      register: db_files
+
+    - name: Run mariadb-install-db only if /var/lib/mysql is empty
+      command: mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
+      when: db_files.matched|int == 0
+
+    - name: Start mariadb
+      service:
+        name: mariadb
+        state: started
