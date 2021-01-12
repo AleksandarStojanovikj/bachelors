@@ -1,0 +1,9 @@
+---
+- hosts: VM
+  become: true
+  
+  tasks:
+    - name: Copy index test page
+      template:
+        src: "files/index.html.j2"
+        dest: "/srv/http/domain1/index.html"
