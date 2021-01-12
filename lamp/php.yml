@@ -48,6 +48,18 @@
         src: "templates/info.php.j2"
         dest: "/srv/http/domain2/info.php"
 
+    - name: Enable mariadb in php.ini
+      lineinfile:
+        path: /etc/php/php.ini
+        regexp: ';extension=pdo_mysql'
+        line: 'extension=pdo_mysql'
+
+    - name: Enable mariadb in php.ini
+      lineinfile:
+        path: /etc/php/php.ini
+        regexp: ';extension=mysqli'
+        line: 'extension=mysqli'
+
     - name: Restart httpd.service
       service:
         name: httpd
