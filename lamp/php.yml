@@ -43,10 +43,15 @@
         path: /etc/httpd/conf/httpd.conf
         line: "Include conf/extra/php7_module.conf"
 
-    - name: Copy info page
+    - name: Deploy info page
       template:
         src: "templates/info.php.j2"
-        dest: "/srv/http/domain2/info.php"
+        dest: "/srv/http/domain2/index.php"
+
+    - name: Deploy database example page
+      template:
+        src: "templates/dbconnection.php.j2"
+        dest: "/srv/http/domain2/db.php"
 
     - name: Enable mariadb in php.ini
       lineinfile:
