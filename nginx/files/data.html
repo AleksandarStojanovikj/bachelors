@@ -1,0 +1,26 @@
+<html>
+
+<body>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Actor ID</th>
+        <th scope="col">First name</th>
+        <th scope="col">Last name</th>
+      </tr>
+    </thead>
+    {% for data in datas %}
+    <tr>
+      <td>{{data[0]}}</td>
+      </td>
+      <td>{{data[1]}}
+      </td>
+      <td>{{data[2]}}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+
+</html>
