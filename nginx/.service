@@ -1,0 +1,13 @@
+[Unit]
+Description=Gunicorn instance to serve testapp
+After=network.target
+
+[Service]
+User=test
+Group=http
+WorkingDirectory=/usr/share/nginx/html/testapp
+Environment="PATH=/usr/share/nginx/html/testapp/env/bin"
+ExecStart=/usr/share/nginx/html/testapp/env/bin/gunicorn --workers 3 --bind unix:testapp.sock -m 007 wsgi:app
+
+[Install]
+WantedBy=multi-user.target
