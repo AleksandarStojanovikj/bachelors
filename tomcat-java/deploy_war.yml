@@ -1,0 +1,13 @@
+---
+- name: Deploy war file
+  hosts: VM-tomcat
+
+  tasks:
+    - name: Transfer war file to node
+      become: yes
+      copy: 
+        src: demoapp.war
+        dest: /usr/share/tomcat8/webapps
+        owner: tomcat8
+        group: tomcat8
+    
