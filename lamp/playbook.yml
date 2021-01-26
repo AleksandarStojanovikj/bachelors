@@ -14,8 +14,7 @@
       tags: ["apache"]
       pacman:
         state: present
-        name: 
-          - apache
+        name: apache
 
     - name: Create document root for vhost1
       file:
