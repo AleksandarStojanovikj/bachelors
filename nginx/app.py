@@ -1,6 +1,8 @@
 import psycopg2
 import logging
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
+from psycopg2 import Error
+
 
 app = Flask(__name__)
 
@@ -21,7 +23,7 @@ def db():
         conn = psycopg2.connect(
             database="pagiladb",
             user="postgres",
-            password="",
+            password="123",
             host="localhost")
 
         cursor = conn.cursor()
@@ -44,36 +46,29 @@ def db():
     return html
     
 @app.route("/data")
-def db():
+def data():
     html = ''
     con = None
-    
+    result = ''
+
     try:
-        conn = psycopg2.connect(
-            database="pagiladb",
-            user="postgres",
-            password="",
-            host="localhost")
-
-        cursor = conn.cursor()
-        html += '<h1>Pagiladb actor table:</h1>'
-
+        con = psycopg2.connect(
+                database="pagiladb",
+                user="postgres",
+                password="123",
+                host="localhost")
+        cursor = con.cursor()
         cursor.execute("SELECT * FROM actor;")
-        record = cursor.fetchone()
-
-        html += '<h1>You are connected to - ' + record[0] + '</h1>'
-
+        result = cursor.fetchall()
         cursor.close()
-    except(Exception) as error:
-        html += 'Error while connecting to postgreSQL'
+    except (Exception) as error:
+        html += 'Error while connecting to PostgreSQL - '
         app.logger.error(error)
     finally:
-        if conn is not None:
-            conn.close()
-            html += 'PostgreSQL connection is closed'
+        if con is not None:
+            con.close()
 
-    return html
-
+    return render_template("data.html", datas=result)
 
 @app.route("/health")
 def health():
