@@ -1,14 +1,11 @@
 ---
-- name: Install the app
+- name: Install python app
   hosts: VM-nginx
-  #become: yes
   tasks:
 
   - name: Create python app root
     become: yes
     file:
-     # path: /home/test/testapp
-     # path: /usr/share/nginx/html/testapp
       path: /usr/share/nginx/html/testapp
       state: directory
       mode: '0777'
@@ -23,37 +20,28 @@
       src: 'files/data.html'
       dest: /usr/share/nginx/html/testapp/templates
 
-  - name: clone app py
-    #become: yes
+  - name: Copy app.py
     copy:
       src: 'app.py'
       dest: /usr/share/nginx/html/testapp/app.py
-     # dest: /home/test/testapp/app.py
 
-  - name: clone app wsgi
-    #become: yes
+  - name: Copy app wsgi
     copy:
       src: 'wsgi.py'
       dest: /usr/share/nginx/html/testapp/wsgi.py
-      #dest: /home/test/testapp/wsgi.py
 
-  - name: clone app requirements
-    #become: yes
+  - name: Copy app requirements
     copy:
       src: 'requirements.txt'
       dest: /usr/share/nginx/html/testapp/requirements.txt
-      #dest: /home/test/testapp/requirements.txt
 
-  - name: install modules in a virtualenv
-    #become: yes
+  - name: Install modules in a virtualenv
     pip:
-      #requirements: /home/test/testapp/requirements.txt
       requirements: /usr/share/nginx/html/testapp/requirements.txt
-      #virtualenv: /home/test/testapp/env
       virtualenv: /usr/share/nginx/html/testapp/env
       virtualenv_python: python3.9.1
 
-- name: Configure app systemd service and nginx
+- name: Configure testapp systemd service and nginx
   hosts: VM-nginx
   become: yes
   become_method: sudo
@@ -68,17 +56,7 @@
       groups: http 
       append: yes
 
-
-  # give our user group execute permissions on our home directory.
-  # This will allow the Nginx process to enter and access content within:
-  # chmod 710 /home/test
-#  - name: Change '{{ ansible_user }}' home directory permissions
-#    file:
-#      path: /home/test
-#      state: directory
-#      mode: '0710'
-
-  - name: template systemd service config
+  - name: Copy systemd service config
     copy:
       src: .service
       dest: /etc/systemd/system/testapp.service
@@ -89,28 +67,24 @@
       daemon_reload: yes
     when: testappservice.changed
 
-  - name: start systemd app service
+  - name: Start systemd testapp.service
     service: 
       name: testapp.service 
       state: started
 
-  - name: template nginx site config
+  - name: Template nginx site config
     template:
       src: .nginx
       dest: /etc/nginx/sites-available/testapp.conf
 
-#  - name: remove default nginx site config
-#    file: path=/etc/nginx/sites-enabled/default state=absent
-  # - command: mv /etc/nginx/sites-enabled/default /tmp/nginx.sites-enabled.default
-
-  - name: enable nginx site
+  - name: Enable testapp site
     file:
       src: /etc/nginx/sites-available/testapp.conf
       dest: /etc/nginx/sites-enabled/testapp.conf
       state: link
       force: yes
 
-  - name: restart nginx
+  - name: Restart nginx
     service: 
       name: nginx 
       state: reloaded
