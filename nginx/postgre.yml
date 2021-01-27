@@ -18,24 +18,12 @@
         - postgresql
         - python-psycopg2
 
-#  - name: Create postgresql data root
-#    file:
-#      path: /var/lib/postgres/data
-#      owner: postgres
-#      group: postgres
-#      state: directory
-#
   - name: Initialize database cluster
     command: initdb --locale=en_US.UTF-8 -E UTF8 -D /var/lib/postgres/data
     args:
       creates: /var/lib/postgres/data/postgresql.conf
     become: yes
     become_user: postgres
-    #command: initdb --locale en_US.UTF-8 -E UTF8 -D {{ postgresql.root }}/data creates={{ postgresql.root }}/data/postgresql.conf
-
-#  - name: Create pagiladb database
-#    become_user: postgres
-#    postgresql_db: name=pagiladb encoding='UTF-8' lc_collate='en_US.UTF-8' lc_ctype='en_US.UTF-8' state=present
 
   - name: Start postgresql service
     service:
@@ -51,60 +39,37 @@
       lc_ctype: en_US.UTF-8
       state: present
 
-#  - name: Create pagila role for database
-#    become_user: postgres
-#    postgresql_user: db=pagiladb user=pagila password=123 priv=ALL state=present
-
   - name: Create pagila role for database
     become_user: postgres
     postgresql_user: 
       db: pagiladb 
       user: pagila 
-      password: 123 
+      password: '123'
       priv: ALL 
       state: present
 
   - name: Copy pagila-db schema
     ansible.builtin.copy:
       src: "~/Documents/Bachelors/nginx/pagila-db/pagila-schema.sql"
-     # dest: "/home/test/pagila-schema.sql"
       dest: "/tmp/pagila-schema.sql"
-#      owner: test
-#      mode: '0777'
 
   - name: Copy pagila-db data
     ansible.builtin.copy:
       src: "~/Documents/Bachelors/nginx/pagila-db/pagila-data.sql"
-      #dest: "/home/test/pagila-data.sql"
       dest: "/tmp/pagila-data.sql"
-#      owner: postgres
 
   - name: Import pagiladb schema
     become_user: postgres
-    #shell: psql pagiladb < /home/postgres/pagila-schema.sql
-    #shell: psql pagiladb < /tmp/pagila-schema.sql
     shell: psql -f /tmp/pagila-schema.sql -U postgres pagiladb
 
   - name: Import pagiladb data
     become_user: postgres
-    #shell: psql pagiladb < /home/test/pagila-data.sql
-    shell: psql pagiladb < /tmp/pagila-data.sql
-
-#  - name: Grant usage of schema to pagila role
-#    become_user: postgres
-#    postgresql_privs: 
-#      database: pagiladb
-#      state: present
-#      privs: USAGE
-#      type: schema
-#      roles: pagila
-#      objs: pagila
+    shell: psql -f /tmp/pagila-data.sql -U postgres pagiladb
 
   - name: Grant table permissions for pagila role
     become_user: postgres
     postgresql_privs:
       database: pagiladb
-#      schema: pagiladb
       state: present
       privs: SELECT,INSERT,UPDATE
       type: table
@@ -116,49 +81,9 @@
     become_user: postgres
     postgresql_privs:
       database: pagiladb
-#      schema: pagiladb
       state: present
       privs: USAGE
       type: sequence
       roles: pagila
       grant_option: no
       objs: ALL_IN_SCHEMA
-#  - name: Copy schema
-#    become_user: postgres
-#    copy: src=/home/sangy/Documents/Bachelors/sakila-db/sakila-schema.sql dest=/home/postgres/file.sql
-#  - name: Copy data
-#    become_user: postgres
-#    copy: src=/home/sangy/Documents/Bachelors/sakila-db/sakila-data.sql dest=/home/postgres/file2.sql
-#
-#  - name: Import schema
-#    become_user: postgres
-#    shell: psql sakila-db < /home/postgres/file.sql
-#  - name: Import data
-#    become_user: postgres
-#    shell: psql sakila-db < /home/postgres/file2.sql
-
-#  - name: Copy sakila-db files
-#    ansible.builtin.copy:
-#      src: "~/Documents/Bachelors/sakila-db/sakila-schema.sql"
-#      dest: "/home/test/sakila-schema.sql"
-#      owner: test
-#      mode: '0777'
-#
-#  - name: Copy sakila-db files
-#    ansible.builtin.copy:
-#      src: "~/Documents/Bachelors/sakila-db/sakila-data.sql"
-#      dest: "/home/test/sakila-data.sql"
-#      owner: test
-#      mode: '0777'
-#
-#  - name: Create sakila-db 
-#    postgresql_db:
-#      name: sakila-db
-#
-#  - name: Import sakila-schema
-#    become_user: postgres
-#    shell: psql sakila-db < /home/test/sakila-schema.sql
-#
-#  - name: Import sakila-data
-#    become_user: postgres
-#    shell: psql sakila-db < /home/test/sakila-data.sql
