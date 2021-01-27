@@ -17,6 +17,26 @@
         name: 
           - nginx
 
+    - name: Create /etc/nginx/sites-available/
+      file:
+        path: /etc/nginx/sites-available/
+        state: directory
+
+    - name: Create /etc/nginx/sites-enabled/
+      file:
+        path: /etc/nginx/sites-enabled/
+        state: directory
+
+    - name: Remove default config
+      file:
+        path: /etc/nginx/nginx.conf
+        state: absent
+
+    - name: Copy config 
+      copy:
+        src: 'files/nginx.conf'
+        dest: /etc/nginx/nginx.conf
+
     - name: Ensure nginx is running
       service:
         name: nginx
