@@ -37,6 +37,11 @@
 #    become_user: postgres
 #    postgresql_db: name=pagiladb encoding='UTF-8' lc_collate='en_US.UTF-8' lc_ctype='en_US.UTF-8' state=present
 
+  - name: Start postgresql service
+    service:
+      name: postgresql
+      state: started
+
   - name: Create pagiladb database
     become_user: postgres
     postgresql_db:
@@ -59,34 +64,47 @@
       priv: ALL 
       state: present
 
-  - name: Start postgresql service
-    service:
-      name: postgresql
-      state: started
+  - name: Copy pagila-db schema
+    ansible.builtin.copy:
+      src: "~/Documents/Bachelors/nginx/pagila-db/pagila-schema.sql"
+     # dest: "/home/test/pagila-schema.sql"
+      dest: "/tmp/pagila-schema.sql"
+#      owner: test
+#      mode: '0777'
+
+  - name: Copy pagila-db data
+    ansible.builtin.copy:
+      src: "~/Documents/Bachelors/nginx/pagila-db/pagila-data.sql"
+      #dest: "/home/test/pagila-data.sql"
+      dest: "/tmp/pagila-data.sql"
+#      owner: postgres
 
   - name: Import pagiladb schema
     become_user: postgres
-    shell: psql pagiladb < /home/postgres/pagila-schema.sql
+    #shell: psql pagiladb < /home/postgres/pagila-schema.sql
+    #shell: psql pagiladb < /tmp/pagila-schema.sql
+    shell: psql -f /tmp/pagila-schema.sql -U postgres pagiladb
 
   - name: Import pagiladb data
     become_user: postgres
-    shell: psql pagiladb < /home/postgres/pagila-data.sql
+    #shell: psql pagiladb < /home/test/pagila-data.sql
+    shell: psql pagiladb < /tmp/pagila-data.sql
 
-  - name: Grant usage of schema to pagila role
-    become_user: postgres
-    postgresql_privs: 
-      database: pagiladb
-      state: present
-      privs: USAGE
-      type: schema
-      roles: pagila
-      objs: dictionary
+#  - name: Grant usage of schema to pagila role
+#    become_user: postgres
+#    postgresql_privs: 
+#      database: pagiladb
+#      state: present
+#      privs: USAGE
+#      type: schema
+#      roles: pagila
+#      objs: pagila
 
   - name: Grant table permissions for pagila role
     become_user: postgres
     postgresql_privs:
       database: pagiladb
-      schema: dictionary
+#      schema: pagiladb
       state: present
       privs: SELECT,INSERT,UPDATE
       type: table
@@ -97,8 +115,8 @@
   - name: Grant sequence permissions for pagila role
     become_user: postgres
     postgresql_privs:
-      database: pagila
-      schema: dictionary
+      database: pagiladb
+#      schema: pagiladb
       state: present
       privs: USAGE
       type: sequence
