@@ -7,35 +7,50 @@
   - name: Create python app root
     become: yes
     file:
-      #path: /home/test/testapp
-      path: /usr/share/nginx/html/testapppy
+     # path: /home/test/testapp
+     # path: /usr/share/nginx/html/testapp
+      path: /usr/share/nginx/html/testapp
       state: directory
       mode: '0777'
 
+  - name: Create templates directory
+    file:
+      path: /usr/share/nginx/html/testapp/templates
+      state: directory
+
+  - name: Copy data template
+    copy:
+      src: 'files/data.html'
+      dest: /usr/share/nginx/html/testapp/templates
+
   - name: clone app py
+    #become: yes
     copy:
       src: 'app.py'
-      dest: /usr/share/nginx/html/testapppy/app.py
-      #dest: /home/test/testapp/app.py
+      dest: /usr/share/nginx/html/testapp/app.py
+     # dest: /home/test/testapp/app.py
 
   - name: clone app wsgi
+    #become: yes
     copy:
       src: 'wsgi.py'
+      dest: /usr/share/nginx/html/testapp/wsgi.py
       #dest: /home/test/testapp/wsgi.py
-      dest: /usr/share/nginx/html/testapppy/wsgi.py
 
   - name: clone app requirements
+    #become: yes
     copy:
       src: 'requirements.txt'
-      dest: /usr/share/nginx/html/testapppy/requirements.txt
+      dest: /usr/share/nginx/html/testapp/requirements.txt
       #dest: /home/test/testapp/requirements.txt
 
   - name: install modules in a virtualenv
+    #become: yes
     pip:
       #requirements: /home/test/testapp/requirements.txt
-      requirements: /usr/share/nginx/html/testapppy/requirements.txt
+      requirements: /usr/share/nginx/html/testapp/requirements.txt
       #virtualenv: /home/test/testapp/env
-      virtualenv: /usr/share/nginx/html/testapppy/env
+      virtualenv: /usr/share/nginx/html/testapp/env
       virtualenv_python: python3.9.1
 
 - name: Configure app systemd service and nginx
@@ -48,8 +63,6 @@
   # /etc/nginx/nginx.conf 
   # user user [group];
   - name: Add existing user '{{ ansible_user }}' to http group #nginx uses 'http' group as default
-  #- name: Add existing user test to http group #nginx uses 'http' group as default
-    # sudo usermod -a -G test http
     user:
       name: test
       groups: http 
@@ -59,16 +72,16 @@
   # give our user group execute permissions on our home directory.
   # This will allow the Nginx process to enter and access content within:
   # chmod 710 /home/test
-  - name: Change '{{ ansible_user }}' home directory permissions
-    file:
-      path: /home/test
-      state: directory
-      mode: '0710'
+#  - name: Change '{{ ansible_user }}' home directory permissions
+#    file:
+#      path: /home/test
+#      state: directory
+#      mode: '0710'
 
   - name: template systemd service config
     copy:
       src: .service
-      dest: /etc/systemd/system/testapppy.service
+      dest: /etc/systemd/system/testapp.service
     register: testappservice
 
   - name: Reload systemctl daemons if testapp.service changed
@@ -76,30 +89,26 @@
       daemon_reload: yes
     when: testappservice.changed
 
-#  - name: start systemd app service
-#    service: 
-#      name: testapppy.service 
-#      state: started
+  - name: start systemd app service
+    service: 
+      name: testapp.service 
+      state: started
 
-#  - name: Change socket permissions # since it doesn't work by default TODO: FIX
-#    file:
-#      path: /home/test/testapp/testapp.sock
-#      state: file
-#      mode: '0664'
+  - name: template nginx site config
+    template:
+      src: .nginx
+      dest: /etc/nginx/sites-available/testapp.conf
 
-#  - name: template nginx site config
-#    template:
-#      src: .nginx
-#      dest: /etc/nginx/sites-available/{{ app_name }}
 #  - name: remove default nginx site config
 #    file: path=/etc/nginx/sites-enabled/default state=absent
   # - command: mv /etc/nginx/sites-enabled/default /tmp/nginx.sites-enabled.default
-#  - name: enable nginx site
-#    file:
-#      src: /etc/nginx/sites-available/{{ app_name }}
-#      dest: /etc/nginx/sites-enabled/default
-#      state: link
-#      force: yes
+
+  - name: enable nginx site
+    file:
+      src: /etc/nginx/sites-available/testapp.conf
+      dest: /etc/nginx/sites-enabled/testapp.conf
+      state: link
+      force: yes
 
   - name: restart nginx
     service: 
