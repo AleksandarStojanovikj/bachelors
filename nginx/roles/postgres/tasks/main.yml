@@ -1,0 +1,87 @@
+---
+- name: Full system upgrade
+  tags: ["system"]
+  pacman:
+    update_cache: yes
+    upgrade: yes
+
+- name: Install postgresql
+  tags: ["postgresql"]
+  pacman:
+    state: present
+    name:
+      - postgresql
+      - python-psycopg2
+
+- name: Initialize database cluster
+  command: initdb --locale=en_US.UTF-8 -E UTF8 -D /var/lib/postgres/data
+  args:
+    creates: /var/lib/postgres/data/postgresql.conf
+  become: yes
+  become_user: postgres
+  notify: "Start postgresql"
+
+# The meta: flush_handlers task triggers any handlers that 
+# have been notified at that point in the play.
+#
+# We need postgresql to be started before continuing
+- name: Flush handlers
+  meta: flush_handlers
+
+- name: Create pagiladb database
+  become_user: postgres
+  postgresql_db:
+    name: pagiladb
+    encoding: UTF-8
+    lc_collate: en_US.UTF-8
+    lc_ctype: en_US.UTF-8
+    state: present
+
+- name: Create pagila role for database
+  become_user: postgres
+  postgresql_user: 
+    db: pagiladb 
+    user: pagila 
+    password: '123'
+    priv: ALL 
+    state: present
+
+- name: Copy pagila-db schema
+  copy:
+    src: pagila-schema.sql
+    dest: "/tmp/pagila-schema.sql"
+
+- name: Copy pagila-db data
+  copy:
+    src: pagila-data.sql
+    dest: "/tmp/pagila-data.sql"
+
+- name: Import pagiladb schema
+  become_user: postgres
+  shell: psql -f /tmp/pagila-schema.sql -U postgres pagiladb
+
+- name: Import pagiladb data
+  become_user: postgres
+  shell: psql -f /tmp/pagila-data.sql -U postgres pagiladb
+
+- name: Grant table permissions for pagila role
+  become_user: postgres
+  postgresql_privs:
+    database: pagiladb
+    state: present
+    privs: SELECT,INSERT,UPDATE
+    type: table
+    roles: pagila
+    grant_option: no
+    objs: ALL_IN_SCHEMA
+
+- name: Grant sequence permissions for pagila role
+  become_user: postgres
+  postgresql_privs:
+    database: pagiladb
+    state: present
+    privs: USAGE
+    type: sequence
+    roles: pagila
+    grant_option: no
+    objs: ALL_IN_SCHEMA

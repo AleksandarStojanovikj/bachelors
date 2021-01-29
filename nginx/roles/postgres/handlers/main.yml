@@ -1,0 +1,6 @@
+---
+- name: Start postgresql service
+  service:
+    name: postgresql
+    state: started
+  listen: "Start postgresql"

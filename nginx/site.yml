@@ -1,0 +1,11 @@
+---
+- name: Install NGINX, Python, PostgreSQL, and deploy examples
+  hosts: VM-nginx
+  become: yes
+
+  roles: 
+    - nginx
+    - python
+    - postgres
+    - deploy
+

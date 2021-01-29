@@ -1,0 +1,12 @@
+---
+- name: Start systemd testapp.service
+  service: 
+    name: testapp.service 
+    state: started
+  listen: "Start systemd"
+
+- name: Restart nginx
+  service: 
+    name: nginx 
+    state: reloaded
+  listen: "Reload nginx"
