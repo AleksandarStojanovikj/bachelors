@@ -1,0 +1,6 @@
+---
+- name: Reload httpd.service
+  service:
+    name: httpd
+    state: reloaded
+  listen: "Reload httpd"

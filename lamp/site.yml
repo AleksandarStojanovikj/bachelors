@@ -1,0 +1,10 @@
+---
+- name: Install Apache HTTP, MariaDB, PHP, and deploy examples
+  hosts: VM
+  become: yes
+
+  roles: 
+    - apache
+    - php
+    - mariadb
+    - deploy

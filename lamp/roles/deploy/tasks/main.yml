@@ -1,0 +1,5 @@
+---
+- name: Copy index test page
+  copy:
+    src: "index.html"
+    dest: "/srv/http/domain1/index.html"

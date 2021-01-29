@@ -1,0 +1,7 @@
+---
+- name: Start mariadb
+  service:
+    name: mariadb
+    state: started
+  listen: "Start mariadb"
+

@@ -1,0 +1,6 @@
+---
+- name: Start httpd service
+  service:
+    name: httpd
+    state: started
+  listen: "Start httpd"

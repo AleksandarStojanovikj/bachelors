@@ -1,0 +1,49 @@
+---
+- name: Install php
+  tags: ["php"]
+  pacman:
+    state: present
+    name:
+      - php
+      - php-apache
+
+# Using libphp
+# https://wiki.archlinux.org/index.php/Apache_HTTP_Server#PHP
+- name: Load mpm_prefork_module in httpd.conf
+  lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: '^LoadModule mpm_event_module modules/mod_mpm_event.so', line: '#LoadModule mpm_event_module modules/mod_mpm_event.so' }
+    - { regexp: '^#LoadModule mpm_prefork_module modules/mod_mpm_prefork.so', line: 'LoadModule mpm_prefork_module modules/mod_mpm_prefork.so' }
+
+- name: Load php modules in httpd.conf
+  lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    insertafter: "{{ item.after }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { after: '#LoadModule rewrite_module modules/mod_rewrite.so', line: 'LoadModule php_module modules/libphp.so'}
+    - { after: 'LoadModule php_module modules/libphp.so', line: 'AddHandler php-script .php'}
+    - { after: 'EOF', line: "Include conf/extra/php_module.conf" }
+
+- name: Deploy info page
+  copy:
+    src: "info.php"
+    dest: "/srv/http/domain2/index.php"
+
+- name: Deploy database example page
+  copy:
+    src: "dbconnection.php"
+    dest: "/srv/http/domain2/db.php"
+
+- name: Enable mariadb in php.ini
+  lineinfile:
+    path: /etc/php/php.ini
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: ';extension=pdo_mysql', line: 'extension=pdo_mysql'}
+    - { regexp: ';extension=mysqli', line: 'extension=mysqli'}
+  notify: "Reload httpd"
