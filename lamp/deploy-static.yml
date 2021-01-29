@@ -1,9 +1,10 @@
 ---
-- hosts: VM
+- name: Deploy static page
+  hosts: VM
   become: true
   
   tasks:
     - name: Copy index test page
-      template:
-        src: "files/index.html.j2"
+      copy:
+        src: "index.html"
         dest: "/srv/http/domain1/index.html"

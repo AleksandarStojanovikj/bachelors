@@ -42,35 +42,25 @@
         login_unix_socket: "{{ mariadb_socket }}"
       when: is_root_password_set.rc == 0
 
-#    - name: Create test table
-#      command: mysql -u root -p root -h localhost --skip-column-names --execute "create table test1 (Name VARCHAR(25),ID INT)"
-
-#    - name: Create a new database with name 'testdata'
-#      mysql_db:
-#        name: testdata
-#        state: present
-#        login_user: root
-#        login_password: "{{ mariadb_root_password }}"
-
-    - name: Copy sakila-db files
+    - name: Copy sakila-schema
       ansible.builtin.copy:
-        src: "~/Documents/Bachelors/sakila-db/sakila-schema.sql"
-        dest: "~/sakila-schema.sql"
+        src: sakila-schema.sql
+        dest: "/tmp/sakila-schema.sql"
         owner: test
         mode: '0644'
 
-    - name: Copy sakila-db files
+    - name: Copy sakila-data
       ansible.builtin.copy:
-        src: "~/Documents/Bachelors/sakila-db/sakila-data.sql"
-        dest: "~/sakila-data.sql"
+        src: sakila-data.sql
+        dest: "/tmp/sakila-data.sql"
         owner: test
         mode: '0644'
 
-    - name: Import sakila database
+    - name: Import sakila schema
       mysql_db:
         state: import
         name: all
-        target: ~/sakila-schema.sql
+        target: /tmp/sakila-schema.sql
         login_user: root
         login_password: "{{ mariadb_root_password }}"
 
@@ -78,6 +68,6 @@
       mysql_db:
         state: import
         name: all
-        target: ~/sakila-data.sql
+        target: /tmp/sakila-data.sql
         login_user: root
         login_password: "{{ mariadb_root_password }}"

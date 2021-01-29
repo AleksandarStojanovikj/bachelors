@@ -14,58 +14,45 @@
     
     # Using libphp
     # https://wiki.archlinux.org/index.php/Apache_HTTP_Server#PHP
-    - name: Comment mpm_event_module in httpd.conf
+    - name: Load mpm_prefork_module in httpd.conf
       lineinfile:
         path: /etc/httpd/conf/httpd.conf
-        regexp: '^LoadModule mpm_event_module modules/mod_mpm_event.so'
-        line: '#LoadModule mpm_event_module modules/mod_mpm_event.so'
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+      with_items:
+        - { regexp: '^LoadModule mpm_event_module modules/mod_mpm_event.so', line: '#LoadModule mpm_event_module modules/mod_mpm_event.so' }
+        - { regexp: '^#LoadModule mpm_prefork_module modules/mod_mpm_prefork.so', line: 'LoadModule mpm_prefork_module modules/mod_mpm_prefork.so' }
 
-    - name: Uncomment mpm_prefork_module in httpd.conf
+    - name: Load php modules in httpd.conf
       lineinfile:
         path: /etc/httpd/conf/httpd.conf
-        regexp: '^#LoadModule mpm_prefork_module modules/mod_mpm_prefork.so'
-        line: 'LoadModule mpm_prefork_module modules/mod_mpm_prefork.so'
-
-    - name: Enable php1
-      lineinfile:
-        path: /etc/httpd/conf/httpd.conf
-        insertafter: '#LoadModule rewrite_module modules/mod_rewrite.so'
-        line: 'LoadModule php7_module modules/libphp7.so'
-
-    - name: Enable php2
-      lineinfile:
-        path: /etc/httpd/conf/httpd.conf
-        insertafter: 'LoadModule php7_module modules/libphp7.so'
-        line: 'AddHandler php7-script .php'
-
-    - name: Enable php3
-      lineinfile:
-        path: /etc/httpd/conf/httpd.conf
-        line: "Include conf/extra/php7_module.conf"
+        insertafter: "{{ item.after }}"
+        line: "{{ item.line }}"
+      with_items:
+        - { after: '#LoadModule rewrite_module modules/mod_rewrite.so', line: 'LoadModule php_module modules/libphp.so'}
+        - { after: 'LoadModule php_module modules/libphp.so', line: 'AddHandler php-script .php'}
+        - { after: 'EOF', line: "Include conf/extra/php_module.conf" }
 
     - name: Deploy info page
-      template:
-        src: "templates/info.php.j2"
+      copy:
+        src: "info.php"
         dest: "/srv/http/domain2/index.php"
 
     - name: Deploy database example page
-      template:
-        src: "templates/dbconnection.php.j2"
+      copy:
+        src: "dbconnection.php"
         dest: "/srv/http/domain2/db.php"
 
     - name: Enable mariadb in php.ini
       lineinfile:
         path: /etc/php/php.ini
-        regexp: ';extension=pdo_mysql'
-        line: 'extension=pdo_mysql'
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+      with_items:
+        - { regexp: ';extension=pdo_mysql', line: 'extension=pdo_mysql'}
+        - { regexp: ';extension=mysqli', line: 'extension=mysqli'}
 
-    - name: Enable mariadb in php.ini
-      lineinfile:
-        path: /etc/php/php.ini
-        regexp: ';extension=mysqli'
-        line: 'extension=mysqli'
-
-    - name: Restart httpd.service
+    - name: Reload httpd.service
       service:
         name: httpd
         state: reloaded
