@@ -1,4 +1,0 @@
-FIX Include conf/vhosts/domainname1.dom in /etc/httpd/conf/httpd.conf
-domainname1 is not enabled?
-also site unreachable?
-see on archwiki about enabling vhosts
