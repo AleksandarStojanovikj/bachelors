@@ -1,0 +1,38 @@
+---
+- name: Install maven
+  become: yes
+  pacman:
+    state: present
+    name: maven
+
+- name: Clone spring-mvc repo
+  git:
+    repo: 'https://github.com/AleksandarStojanovikj/spring-mvc.git'
+    dest: /home/test/spring-mvc
+    
+- name: Change post url
+  lineinfile:
+    path: /home/test/spring-mvc/src/main/webapp/WEB-INF/views/registerForm.jsp
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: '^<form method="post" action="/register">', line: '<form method="post" action="/mvc/register">' }
+
+- name: Run mvn clean install
+  shell: mvn clean install
+  args: 
+    chdir: /home/test/spring-mvc
+
+- name: Remove old deployed war
+  become: yes
+  file:
+    path: /usr/share/tomcat8/webapps/mvc.war
+    state: absent
+
+- name: Deploy spring-mvc.war to tomcat
+  become: yes
+  copy:
+    remote_src: yes
+    src: /home/test/spring-mvc/target/mvc.war
+    dest: /usr/share/tomcat8/webapps/mvc.war
+

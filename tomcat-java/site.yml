@@ -1,0 +1,9 @@
+---
+- name: Install Tomcat, Maven, and deploy examples
+  hosts: VM-tomcat
+  become: yes
+
+  roles: 
+    - tomcat
+    - maven
+  #  - deploy

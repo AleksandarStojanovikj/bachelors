@@ -1,0 +1,6 @@
+---
+- name: Start tomcat
+  service:
+    name: tomcat8
+    state: started
+  listen: "Start tomcat"

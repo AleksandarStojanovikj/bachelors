@@ -1,0 +1,19 @@
+---
+- name: Full system upgrade
+  tags: ["system"]
+  pacman:
+    update_cache: yes
+    upgrade: yes
+
+- name: Install tomcat
+  tags: ["tomcat"]
+  pacman:
+    state: present
+    name: tomcat8
+  notify: "Start tomcat"
+
+- name: Install git
+  pacman: 
+    state: present
+    name: git
+
